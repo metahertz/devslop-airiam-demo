@@ -1,0 +1,96 @@
+name: Deploy Demo Lambdas
+on:
+  push:
+    branches:
+      - master
+jobs:
+  airiam-pre:
+    name: Generate current IAM terraform, pre-deploy.
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Generate terraform with AirIAM
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+      run: |
+        pip install airiam
+        airiam terraform --no-cache --without-import -l 30 -d preterraform 
+        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        tar -czvf pre-terraform-${{ steps.vars.outputs.sha_short }}.tgz preterraform
+    - name: Upload resultant terraform
+      uses: actions/upload-artifact@v2
+      with:
+        name: pre-terraform
+        path: pre-terraform.tgz
+  deploy-dev:
+    needs: airiam-pre
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '10.x'
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install Serverless Framework
+      run: npm install -g serverless
+    - name: Install NPM dependencies
+      run: npm install
+    - name: Serverless AWS authentication
+      run: sls config credentials --provider aws --key ${{ secrets.AWS_KEY }} --secret ${{ secrets.AWS_SECRET }}
+    - name: Create env file
+      run: | 
+        cat > env.yml << EOF
+        ${{ secrets.ENV }}
+        EOF
+    - name: Deploy sls functions and resources
+      run: sls deploy -s dev
+  airiam-post:
+      needs: deploy-dev
+      name: Generate current IAM terraform, pre-deploy.
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v1
+      - name: Generate terraform with AirIAM
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+        run: |
+          pip install airiam
+          airiam terraform --no-cache --without-import -l 30 -d postterraform 
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+          tar -czvf post-terraform-${{ steps.vars.outputs.sha_short }}.tgz postterraform
+      - name: Upload resultant terraform
+        uses: actions/upload-artifact@v2
+        with:
+          name: post-terraform
+          path: post-terraform.tgz
+  airiam-diff:
+      needs: airiam-post
+      name: show IAM differences in Terraform
+      runs-on: ubuntu-latest
+      steps:
+      - name: Download pre-deploy terraform
+        uses: actions/download-artifact@v2
+        with:
+          name: pre-terraform
+      - name: Download post-deploy terraform
+        uses: actions/download-artifact@v2
+        with:
+          name: pre-terraform     
+      - shell: bash
+        run: |
+          tar -xzvf pre-terraform-$(git rev-parse --short HEAD).tgz 
+          tar -xzvf post-terraform-$(git rev-parse --short HEAD).tgz 
+          diff ./preterraform ./postterraform   
+      - name: Run Checkov against latest terraform
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+        run: |
+          pip install checkov
+          checkov -d ./postterraform
+
+          
