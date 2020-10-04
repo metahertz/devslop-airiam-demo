@@ -96,7 +96,7 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.8
-        run: |
+      - run: |
           pip install checkov
           checkov -d ./postterraform
 
