@@ -9,15 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Generate terraform with AirIAM
-      uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.7
+      name: Generate terraform with AirIAM
       run: |
-        pip install airiam
+        pip3 install -U pip setuptools 
+        pip3 install airiam
         airiam terraform --no-cache --without-import -l 30 -d preterraform 
-        echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-        tar -czvf pre-terraform-${{ steps.vars.outputs.sha_short }}.tgz preterraform
+        tar -czvf pre-terraform-$(git rev-parse --short HEAD).tgz preterraform
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Upload resultant terraform
       uses: actions/upload-artifact@v2
       with:
@@ -38,13 +41,12 @@ jobs:
       run: npm install -g serverless
     - name: Install NPM dependencies
       run: npm install
-    - name: Serverless AWS authentication
-      run: sls config credentials --provider aws --key ${{ secrets.AWS_KEY }} --secret ${{ secrets.AWS_SECRET }}
-    - name: Create env file
-      run: | 
-        cat > env.yml << EOF
-        ${{ secrets.ENV }}
-        EOF
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
     - name: Deploy sls functions and resources
       run: sls deploy -s dev
   airiam-post:
@@ -60,8 +62,7 @@ jobs:
         run: |
           pip install airiam
           airiam terraform --no-cache --without-import -l 30 -d postterraform 
-          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-          tar -czvf post-terraform-${{ steps.vars.outputs.sha_short }}.tgz postterraform
+          tar -czvf post-terraform-$(git rev-parse --short HEAD).tgz postterraform
       - name: Upload resultant terraform
         uses: actions/upload-artifact@v2
         with:
