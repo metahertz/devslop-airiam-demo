@@ -12,12 +12,12 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.7
-      name: Generate terraform with AirIAM
+    - name: Generate terraform with AirIAM
       run: |
         pip3 install -U pip setuptools 
         pip3 install airiam
         airiam terraform --no-cache --without-import -l 30 -d preterraform 
-        tar -czvf pre-terraform-$(git rev-parse --short HEAD).tgz preterraform
+        tar -czvf pre-terraform.tgz preterraform
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -25,7 +25,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pre-terraform
-        path: pre-terraform.tgz
+        path: pre-terraform.tgz 
   deploy-dev:
     needs: airiam-pre
     runs-on: ubuntu-latest
@@ -40,7 +40,9 @@ jobs:
     - name: Install Serverless Framework
       run: npm install -g serverless
     - name: Install NPM dependencies
-      run: npm install
+      run: |
+        npm install
+        npm install serverless-python-requirements
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -55,19 +57,23 @@ jobs:
       runs-on: ubuntu-latest
       steps:
       - uses: actions/checkout@v1
-      - name: Generate terraform with AirIAM
-        uses: actions/setup-python@v1
+      - uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.7
+      - name: Generate terraform with AirIAM
         run: |
+          pip3 install -U pip setuptools 
           pip install airiam
           airiam terraform --no-cache --without-import -l 30 -d postterraform 
-          tar -czvf post-terraform-$(git rev-parse --short HEAD).tgz postterraform
+          tar -czvf post-terraform.tgz postterraform
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload resultant terraform
         uses: actions/upload-artifact@v2
         with:
           name: post-terraform
-          path: post-terraform.tgz
+          path: pre-terraform.tgz 
   airiam-diff:
       needs: airiam-post
       name: show IAM differences in Terraform
@@ -80,11 +86,11 @@ jobs:
       - name: Download post-deploy terraform
         uses: actions/download-artifact@v2
         with:
-          name: pre-terraform     
+          name: post-terraform     
       - shell: bash
         run: |
-          tar -xzvf pre-terraform-$(git rev-parse --short HEAD).tgz 
-          tar -xzvf post-terraform-$(git rev-parse --short HEAD).tgz 
+          tar -xzvf pre-terraform.tgz 
+          tar -xzvf post-terraform.tgz 
           diff ./preterraform ./postterraform   
       - name: Run Checkov against latest terraform
         uses: actions/setup-python@v1
