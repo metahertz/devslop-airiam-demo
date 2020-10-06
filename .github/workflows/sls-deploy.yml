@@ -73,7 +73,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: post-terraform
-          path: pre-terraform.tgz 
+          path: post-terraform.tgz 
   airiam-diff:
       needs: airiam-post
       name: show IAM differences in Terraform
@@ -99,6 +99,6 @@ jobs:
       - run: |
           pip install checkov
           checkov -d ./postterraform
-          
+
 
           
