@@ -20,7 +20,7 @@ package:
 
 functions:
   test:
-    role: myCustRole
+    role: myCustRoleTest
     handler: functions/test.test
     environment:
     events:
@@ -71,11 +71,11 @@ resources:
         RestApiId:
           Ref: 'ApiGatewayRestApi'
 
-    myCustRole:
+    myCustRoleTest:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/cust/path/
-        RoleName: MyCustRole
+        RoleName: myCustRoleTest
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -85,7 +85,7 @@ resources:
                   - lambda.amazonaws.com
               Action: sts:AssumeRole
         Policies:
-          - PolicyName: demoPolicy
+          - PolicyName: demoPolicyNew
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
