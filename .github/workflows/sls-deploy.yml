@@ -103,7 +103,7 @@ jobs:
               icon_emoji: ':octocat:',
               attachments: [{
                 color: 'bad',
-                text: 'This commit changed your IAM access configuration!! \n Author: ${process.env.AS_AUTHOR} \n Commit: ${process.env.AS_COMMIT} \n Repo: ${process.env.AS_REPO} \n Diff Below \n ``` \n ${process.env.airiam_diff} \n ``` ',
+                text: `This commit changed your IAM access configuration!! \n Author: ${process.env.AS_AUTHOR} \n Commit: ${process.env.AS_COMMIT} \n Repo: ${process.env.AS_REPO} \n Diff Below \n ``` \n ${process.env.airiam_diff} \n ``` `,
               }]
             }
         env:
