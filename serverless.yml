@@ -20,7 +20,7 @@ package:
 
 functions:
   test:
-    role: myCustRoleTest3`
+    role: myCustRoleTest3
     handler: functions/test.test
     environment:
     events:
