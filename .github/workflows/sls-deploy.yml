@@ -91,9 +91,7 @@ jobs:
         run: |
           tar -xzvf pre-terraform.tgz
           tar -xzvf post-terraform.tgz
-          echo 'AIRIAM_DIFF<<EOF' >> $GITHUB_ENV
-          diff ./preterraform ./postterraform >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          echo "airiam_diff=$(diff ./preterraform ./postterraform)"  >> $GITHUB_ENV
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
@@ -105,7 +103,7 @@ jobs:
               icon_emoji: ':octocat:',
               attachments: [{
                 color: 'bad',
-                text: 'This commit changed your IAM access configuration!! \n Author: ${process.env.AS_AUTHOR} \n Commit: ${process.env.AS_COMMIT} \n Repo: ${process.env.AS_REPO} \n Diff Below \n ``` \n ${process.env.AIRIAM_DIFF} \n ``` ',
+                text: 'This commit changed your IAM access configuration!! \n Author: ${process.env.AS_AUTHOR} \n Commit: ${process.env.AS_COMMIT} \n Repo: ${process.env.AS_REPO} \n Diff Below \n ``` \n ${process.env.airiam_diff} \n ``` ',
               }]
             }
         env:
