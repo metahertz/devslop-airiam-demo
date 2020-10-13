@@ -71,7 +71,7 @@ resources:
         RestApiId:
           Ref: 'ApiGatewayRestApi'
 
-    myCustRoleTest123:
+    myCustRoleTest1234:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/cust/path/
