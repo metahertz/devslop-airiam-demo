@@ -134,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }} # optional
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required 
-        if: ${process.env.airiam_hasdiff} 
+        if: ${{process.env.airiam_hasdiff}} 
       - name: Run Checkov against latest terraform
         uses: actions/setup-python@v1
         with:
