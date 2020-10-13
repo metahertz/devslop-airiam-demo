@@ -92,7 +92,7 @@ jobs:
           tar -xzvf pre-terraform.tgz
           tar -xzvf post-terraform.tgz
           echo ::set-env name=airiam_diff::"$(diff ./preterraform ./postterraform)"
-          echo ::set-env name=airiam_hasdiff::"$?"
+          echo ::set-output name=airiam_hasdiff::"$?"
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
@@ -134,7 +134,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }} # optional
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required 
-        if: ${{process.env.airiam_hasdiff}} 
+        if: ${{steps.vars.outputs.airiam_hasdiff}} 
       - name: Run Checkov against latest terraform
         uses: actions/setup-python@v1
         with:
