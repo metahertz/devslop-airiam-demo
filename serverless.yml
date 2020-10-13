@@ -20,7 +20,7 @@ package:
 
 functions:
   test:
-    role: myCustRoleTest123
+    role: myCustRoleTest1234
     handler: functions/test.test
     environment:
     events:
@@ -75,7 +75,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/cust/path/
-        RoleName: myCustRoleTest123
+        RoleName: myCustRoleTest1234
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -85,7 +85,7 @@ resources:
                   - lambda.amazonaws.com
               Action: sts:AssumeRole
         Policies:
-          - PolicyName: demoPolicyNew123
+          - PolicyName: demoPolicyNew1234
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
