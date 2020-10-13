@@ -86,12 +86,31 @@ jobs:
       - name: Download post-deploy terraform
         uses: actions/download-artifact@v2
         with:
-          name: post-terraform     
+          name: post-terraform
       - shell: bash
         run: |
-          tar -xzvf pre-terraform.tgz 
-          tar -xzvf post-terraform.tgz 
-          diff ./preterraform ./postterraform   
+          tar -xzvf pre-terraform.tgz
+          tar -xzvf post-terraform.tgz
+          echo 'AIRIAM_DIFF<<EOF' >> $GITHUB_ENV
+          diff ./preterraform ./postterraform >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+      - name: Send slack message to CodifiedSecurity
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took # selectable (default: repo,message)
+          custom_payload: |
+            {
+              username: 'airIAM-difftool',
+              icon_emoji: ':octocat:',
+              attachments: [{
+                color: 'bad',
+                text: 'This commit changed your IAM access configuration!! \n Author: ${process.env.AS_AUTHOR} \n Commit: ${process.env.AS_COMMIT} \n Repo: ${process.env.AS_REPO} \n Diff Below \n ``` \n ${process.env.AIRIAM_DIFF} \n ``` ',
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # optional
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required    
       - name: Run Checkov against latest terraform
         uses: actions/setup-python@v1
         with:
