@@ -93,6 +93,10 @@ jobs:
           tar -xzvf post-terraform.tgz
           echo ::set-env name=airiam_diff::"$(diff ./preterraform ./postterraform)"
           echo ::set-output name=airiam_hasdiff::"$?"
+      - shell: bash
+        run: |
+          echo ${{ steps.vars.outputs.airiam_hasdiff }} 
+          echo ${{ process.env.airiam_diff }}
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
