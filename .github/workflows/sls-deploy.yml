@@ -91,12 +91,17 @@ jobs:
         run: |
           tar -xzvf pre-terraform.tgz
           tar -xzvf post-terraform.tgz
-          echo ::set-output name=airiam_diff::"$(diff ./preterraform ./postterraform)"
-          echo ::set-output name=airiam_hasdiff::"$?"
+          echo ::set-env name=airiam_diff::"$(diff ./preterraform ./postterraform)"
+          echo ::set-env name=airiam_hasdiff::"$?"
+  airiam-alert:
+      needs: airiam-diff
+      name: Generate current IAM terraform, post-deploy.
+      runs-on: ubuntu-latest
+      steps:
       - shell: bash
         run: |
-          echo ${{ steps.vars.outputs.airiam_hasdiff }} 
-          echo ${{ steps.vars.outputs.airiam_diff }}
+          echo ${{ process.env.airiam_diff }} 
+          echo ${{ process.env.airiam_hasdiff }}
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
@@ -129,7 +134,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": `*Change Diff:*\n${steps.vars.outputs.airiam_diff}`
+                      "text": `*Change Diff:*\n${process.env.airiam_diff}`
                     }
                   ]
                 }
