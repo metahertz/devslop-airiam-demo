@@ -16,16 +16,16 @@ jobs:
       run: |
         pip3 install -U pip setuptools 
         pip3 install airiam
-        airiam terraform --no-cache --without-import -l 30 -d preterraform 
-        tar -czvf pre-terraform.tgz preterraform
+        airiam terraform --no-cache --without-import -l 30 -d pre-$GITHUB_SHA
+        tar -czvf pre-$GITHUB_SHA.tgz pre-$GITHUB_SHA
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Upload resultant terraform
       uses: actions/upload-artifact@v2
       with:
-        name: pre-terraform
-        path: pre-terraform.tgz 
+        name: pre-${{github.sha}}
+        path: pre-${{github.sha}}.tgz
   deploy-dev:
     needs: airiam-pre
     runs-on: ubuntu-latest
@@ -64,16 +64,16 @@ jobs:
         run: |
           pip3 install -U pip setuptools 
           pip install airiam
-          airiam terraform --no-cache --without-import -l 30 -d postterraform 
-          tar -czvf post-terraform.tgz postterraform
+          airiam terraform --no-cache --without-import -l 30 -d post-$GITHUB_SHA
+          tar -czvf post-$GITHUB_SHA.tgz post-$GITHUB_SHA
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Upload resultant terraform
         uses: actions/upload-artifact@v2
         with:
-          name: post-terraform
-          path: post-terraform.tgz 
+          name: post-${{github.sha}}
+          path: post-${{github.sha}}.tgz 
   airiamdiff:
       needs: airiam-post
       outputs:
@@ -86,18 +86,18 @@ jobs:
         id: "step1"
         uses: actions/download-artifact@v2
         with:
-          name: pre-terraform
+          name: pre-${{github.sha}}
       - name: Download post-deploy terraform
         id: "step2"
         uses: actions/download-artifact@v2
         with:
-          name: post-terraform
+          name: post-${{github.sha}}
       - shell: bash
         id: "step3"
         run: |
-          tar -xzvf pre-terraform.tgz
-          tar -xzvf post-terraform.tgz
-          echo ::set-output name=airiamdiff::"$(diff ./preterraform ./postterraform)"
+          tar -xzvf pre-$GITHUB_SHA.tgz
+          tar -xzvf post-$GITHUB_SHA.tgz
+          echo ::set-output name=airiamdiff::"$(diff ./pre-$GITHUB_SHA ./post-$GITHUB_SHA)"
           echo ::set-output name=airiamhasdiff::"$?"
   airiam-alert:
       needs: airiamdiff
