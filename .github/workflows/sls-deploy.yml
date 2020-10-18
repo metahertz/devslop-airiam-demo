@@ -77,7 +77,6 @@ jobs:
   airiamdiff:
       needs: airiam-post
       outputs:
-        airiamdiff: ${{ steps.step3.outputs.airiamdiff }}
         airiamhasdiff: ${{ steps.step3.outputs.airiamhasdiff }}
       name: show IAM differences in Terraform
       runs-on: ubuntu-latest
@@ -97,17 +96,26 @@ jobs:
         run: |
           tar -xzvf pre-$GITHUB_SHA.tgz
           tar -xzvf post-$GITHUB_SHA.tgz
-          echo ::set-output name=airiamdiff::"$(diff ./pre-$GITHUB_SHA ./post-$GITHUB_SHA)"
+          diff ./pre-$GITHUB_SHA ./post-$GITHUB_SHA > $GITHUB_SHA.diff
           echo ::set-output name=airiamhasdiff::"$?"
+      - name: Upload diff as artifact 
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{github.sha}}
+          path: ${{github.sha}}.diff
   airiam-alert:
       needs: airiamdiff
       name: Alert on IAM Changes.
       runs-on: ubuntu-latest
       steps:
+      - name: Get diff artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{github.sha}}
       - shell: bash
         run: |
-          echo ${{ needs.airiamdiff.outputs.airiamdiff }}
           echo ${{ needs.airiamdiff.outputs.airiamhasdiff }}
+          echo $GITHUB_SHA.diff
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
@@ -120,7 +128,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*The following changed your IAM access configuration!!:\n*"
+                    "text": "*The following commit to master changed your IAM access configuration!!:\n*"
                   }
                 },
                 {
@@ -140,7 +148,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": `*Change Diff:*\n${needs.airiamdiff.outputs.airiamdiff}`
+                      "text": `*Diff available here:*\n${process.env.AS_ACTION}`
                     }
                   ]
                 }
