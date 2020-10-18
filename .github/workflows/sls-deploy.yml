@@ -78,7 +78,7 @@ jobs:
       needs: airiam-post
       outputs:
         airiamdiff: ${{ steps.step3.outputs.airiamdiff }}
-        output2: ${{ steps.step3.outputs.airiamhasdiff }}
+        airiamhasdiff: ${{ steps.step3.outputs.airiamhasdiff }}
       name: show IAM differences in Terraform
       runs-on: ubuntu-latest
       steps:
@@ -101,7 +101,7 @@ jobs:
           echo ::set-output name=airiamhasdiff::"$?"
   airiam-alert:
       needs: airiamdiff
-      name: Generate current IAM terraform, post-deploy.
+      name: Alert on IAM Changes.
       runs-on: ubuntu-latest
       steps:
       - shell: bash
