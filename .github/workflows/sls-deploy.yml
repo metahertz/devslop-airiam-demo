@@ -74,34 +74,40 @@ jobs:
         with:
           name: post-terraform
           path: post-terraform.tgz 
-  airiam-diff:
+  airiamdiff:
       needs: airiam-post
+      outputs:
+        airiamdiff: ${{ steps.step3.outputs.airiamdiff }}
+        output2: ${{ steps.step3.outputs.airiamhasdiff }}
       name: show IAM differences in Terraform
       runs-on: ubuntu-latest
       steps:
       - name: Download pre-deploy terraform
+        id: "step1"
         uses: actions/download-artifact@v2
         with:
           name: pre-terraform
       - name: Download post-deploy terraform
+        id: "step2"
         uses: actions/download-artifact@v2
         with:
           name: post-terraform
       - shell: bash
+        id: "step3"
         run: |
           tar -xzvf pre-terraform.tgz
           tar -xzvf post-terraform.tgz
-          echo ::set-env name=airiam_diff::"$(diff ./preterraform ./postterraform)"
-          echo ::set-env name=airiam_hasdiff::"$?"
+          echo ::set-output name=airiamdiff::"$(diff ./preterraform ./postterraform)"
+          echo ::set-output name=airiamhasdiff::"$?"
   airiam-alert:
-      needs: airiam-diff
+      needs: airiamdiff
       name: Generate current IAM terraform, post-deploy.
       runs-on: ubuntu-latest
       steps:
       - shell: bash
         run: |
-          echo ${ process.env.airiam_diff } 
-          echo ${ process.env.airiam_hasdiff }
+          echo ${{ needs.airiamdiff.outputs.airiamdiff }}
+          echo ${{ needs.airiamdiff.outputs.airiamhasdiff }}
       - name: Send slack message to CodifiedSecurity
         uses: 8398a7/action-slack@v3
         with:
@@ -134,7 +140,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": `*Change Diff:*\n${process.env.airiam_diff}`
+                      "text": `*Change Diff:*\n${needs.airiamdiff.outputs.airiamdiff}`
                     }
                   ]
                 }
@@ -143,6 +149,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }} # optional
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required 
+        if: ${{ needs.airiamdiff.outputs.airiamhasdiff == 1 }}
       - name: Run Checkov against latest terraform
         uses: actions/setup-python@v1
         with:
