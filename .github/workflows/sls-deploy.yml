@@ -78,7 +78,7 @@ jobs:
       needs: airiam-post
       outputs:
         airiamhasdiff: ${{ steps.step3.outputs.airiamhasdiff }}
-      name: show IAM differences in Terraform
+      name: Diff pre and post deploy terraform.
       runs-on: ubuntu-latest
       steps:
       - name: Download pre-deploy terraform
