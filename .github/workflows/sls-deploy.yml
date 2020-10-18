@@ -127,7 +127,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*The following commit to master changed your IAM access configuration!!:\n*"
+                    "text": `*The following commit to master changed your IAM access configuration!!\n*`
                   }
                 },
                 {
