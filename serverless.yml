@@ -20,7 +20,7 @@ package:
 
 functions:
   test:
-    role: myCustRoleUpdate2
+    role: myCustRoleUpdate3
     handler: functions/test.test
     environment:
     events:
@@ -71,11 +71,11 @@ resources:
         RestApiId:
           Ref: 'ApiGatewayRestApi'
 
-    myCustRoleUpdate2:
+    myCustRoleUpdate3:
       Type: AWS::IAM::Role
       Properties:
         Path: /my/cust/path/
-        RoleName: myCustRoleUpdate2
+        RoleName: myCustRoleUpdate3
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:

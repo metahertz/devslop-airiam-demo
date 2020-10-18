@@ -96,8 +96,7 @@ jobs:
         run: |
           tar -xzvf pre-$GITHUB_SHA.tgz
           tar -xzvf post-$GITHUB_SHA.tgz
-          diff ./pre-$GITHUB_SHA ./post-$GITHUB_SHA > $GITHUB_SHA.diff
-          echo ::set-output name=airiamhasdiff::"$?"
+          diff ./pre-$GITHUB_SHA ./post-$GITHUB_SHA > $GITHUB_SHA.diff || echo ::set-output name=airiamhasdiff::"1"
       - name: Upload diff as artifact 
         uses: actions/upload-artifact@v2
         with:
